@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { FastifyInstance } from "fastify";
 import { knexDB } from "../../src/database";
 import { checkSessionId } from "../../middlewares/checkSessionId";
-import console from "node:console";
 
 interface IUser {
   id: string,
