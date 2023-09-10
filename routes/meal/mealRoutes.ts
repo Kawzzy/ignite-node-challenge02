@@ -23,6 +23,7 @@ const getMealParamsSchema = z.object({
 })
 
 export async function mealRoutes(app: FastifyInstance) {
+  
   app.post('/', { preHandler: [checkSessionId] } , async (req, res) => {
     
     const userId = req.cookies.sessionId
@@ -49,6 +50,23 @@ export async function mealRoutes(app: FastifyInstance) {
       .where('userId', userId)
 
     return { userId, meals }
+  })
+
+  app.get('/:id', { preHandler: [checkSessionId] }, async (req) => {
+
+    const { id } = getMealParamsSchema.parse(req.params)
+
+    const userId = req.cookies.sessionId
+
+    const meal = await knexDB('meals')
+      .select()
+      .where({
+        id,
+        userId
+      })
+      .first()
+
+      return { meal }
   })
   
   app.delete('/:id', { preHandler: [checkSessionId] }, async (req, res) => {
