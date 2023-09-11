@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { randomUUID } from "node:crypto";
-import { FastifyInstance } from "fastify";
-import { knexDB } from "../../src/database";
-import { checkSessionId } from "../../middlewares/checkSessionId";
+import { z } from 'zod'
+import { randomUUID } from 'node:crypto'
+import { FastifyInstance } from 'fastify'
+import { knexDB } from '../../src/database'
+import { checkSessionId } from '../../middlewares/checkSessionId'
 
 interface IUser {
-  id: string,
-  sessionId: string,
+  id: string
+  sessionId: string
   name: string
 }
 
@@ -26,7 +26,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     res.cookie('sessionId', sessionId, {
       path: '/',
-      maxAge: 1000 * 60 * 60 * 24 * 7 // 7 dias
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
     })
 
     await knexDB<IUser>('users').insert({
