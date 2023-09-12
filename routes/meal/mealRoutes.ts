@@ -79,6 +79,17 @@ export async function mealRoutes(app: FastifyInstance) {
     
     const userId = getUserId(req)
 
+    const meal = await knexDB<IMeal>('meals')
+      .select()
+      .where({
+        id
+      })
+      .first()
+
+    if (meal?.userId != userId) {
+      return res.status(409).send(`There's no meal: "${id}" for user: "${userId}"`)
+    }
+
     const { name, desc, isHealthy } = mealSchema.parse(req.body)
 
     await knexDB<IMeal>('meals')
@@ -99,6 +110,17 @@ export async function mealRoutes(app: FastifyInstance) {
     const { id } = getMealId(req)
 
     const userId = getUserId(req)
+
+    const meal = await knexDB<IMeal>('meals')
+      .select()
+      .where({
+        id
+      })
+      .first()
+
+    if (meal?.userId != userId) {
+      return res.status(409).send(`There's no meal: "${id}" for user: "${userId}"`)
+    }
 
     await knexDB<IMeal>('meals')
       .delete()

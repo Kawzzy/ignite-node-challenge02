@@ -14,15 +14,21 @@ const userSchema = z.object({
   name: z.string(),
 })
 
+const getUserParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
 export async function userRoutes(app: FastifyInstance) {
   app.post('/', async (req, res) => {
     const { name } = userSchema.parse(req.body)
 
     let { sessionId } = req.cookies
 
-    if (!sessionId) {
-      sessionId = randomUUID()
+    if (sessionId) {
+      return res.status(409).send(`There's already an user authenticated!`)
     }
+    
+    sessionId = randomUUID()
 
     res.cookie('sessionId', sessionId, {
       path: '/',
@@ -38,14 +44,23 @@ export async function userRoutes(app: FastifyInstance) {
     return res.status(201).send()
   })
 
-  // created the getUsers route for development purposes
+  // created the following routes for development purposes
   app.get('/', { preHandler: [checkSessionId] }, async (req) => {
-    const { sessionId } = req.cookies
 
     const users = await knexDB<IUser>('users')
       .select()
-      .where('sessionId', sessionId)
 
     return { users }
+  })
+
+  app.delete('/:id', async (req, res) => {
+
+    const { id } = getUserParamsSchema.parse(req.params)
+
+    await knexDB<IUser>('users')
+      .delete()
+      .where({
+        id
+      })
   })
 }
