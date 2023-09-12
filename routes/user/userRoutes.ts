@@ -1,14 +1,10 @@
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
-import { FastifyInstance } from 'fastify'
 import { knexDB } from '../../src/database'
+import { getUserId } from '../../utils/utils'
+import { IMeal, IUser } from '../../types/types'
+import { FastifyInstance, FastifyRequest } from 'fastify'
 import { checkSessionId } from '../../middlewares/checkSessionId'
-
-interface IUser {
-  id: string
-  sessionId: string
-  name: string
-}
 
 const userSchema = z.object({
   name: z.string(),
@@ -44,8 +40,31 @@ export async function userRoutes(app: FastifyInstance) {
     return res.status(201).send()
   })
 
+  app.get('/resume', { preHandler: [checkSessionId] }, async (req, res) => {
+    
+    const userId = getUserId(req)
+
+    const meals = await knexDB<IMeal>('meals')
+      .select()
+      .where({
+        userId
+      })
+
+      const qtMeals = meals.length
+      const qtHealthyMeals = meals.filter(meal => meal.isHealthy).length
+      const qtUnhealthyMeals = meals.filter(meal => !meal.isHealthy).length
+
+      const result = {
+        "Quantidade total de refeições": qtMeals,
+        "Quantidade total de refeições dentro da dieta": qtHealthyMeals,
+        "Quantidade total de refeições fora da dieta": qtUnhealthyMeals
+      }
+
+      return res.status(200).send({ userId, result })
+  })
+
   // created the following routes for development purposes
-  app.get('/', { preHandler: [checkSessionId] }, async (req) => {
+  app.get('/', async () => {
 
     const users = await knexDB<IUser>('users')
       .select()
@@ -53,7 +72,7 @@ export async function userRoutes(app: FastifyInstance) {
     return { users }
   })
 
-  app.delete('/:id', async (req, res) => {
+  app.delete('/:id', async (req) => {
 
     const { id } = getUserParamsSchema.parse(req.params)
 

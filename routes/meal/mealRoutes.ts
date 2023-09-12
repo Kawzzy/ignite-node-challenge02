@@ -1,16 +1,10 @@
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
-import { FastifyInstance, FastifyRequest } from 'fastify'
+import { IMeal } from '../../types/types'
 import { knexDB } from '../../src/database'
+import { getUserId } from '../../utils/utils'
+import { FastifyInstance, FastifyRequest } from 'fastify'
 import { checkSessionId } from '../../middlewares/checkSessionId'
-
-interface IMeal {
-  id: string
-  name: string
-  desc: string
-  isHealthy: boolean
-  userId: string
-}
 
 const mealSchema = z.object({
   name: z.string(),
@@ -21,10 +15,6 @@ const mealSchema = z.object({
 const getMealParamsSchema = z.object({
   id: z.string().uuid(),
 })
-
-function getUserId(req: FastifyRequest) {
-  return req.cookies.sessionId
-}
 
 function getMealId(req: FastifyRequest) {
   return getMealParamsSchema.parse(req.params)
