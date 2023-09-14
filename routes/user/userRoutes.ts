@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
+import { FastifyInstance } from 'fastify'
 import { knexDB } from '../../src/database'
-import { getUserId } from '../../utils/utils'
 import { IMeal, IUser } from '../../types/types'
-import { FastifyInstance, FastifyRequest } from 'fastify'
 import { checkSessionId } from '../../middlewares/checkSessionId'
+import { calculateLongestStreak, getUserId } from '../../utils/utils'
 
 const userSchema = z.object({
   name: z.string(),
@@ -49,15 +49,18 @@ export async function userRoutes(app: FastifyInstance) {
       .where({
         userId
       })
+      .orderBy('created_at', 'asc')
 
       const qtMeals = meals.length
       const qtHealthyMeals = meals.filter(meal => meal.isHealthy).length
       const qtUnhealthyMeals = meals.filter(meal => !meal.isHealthy).length
+      const bestSequence = calculateLongestStreak(meals)
 
       const result = {
         "Quantidade total de refeições": qtMeals,
         "Quantidade total de refeições dentro da dieta": qtHealthyMeals,
-        "Quantidade total de refeições fora da dieta": qtUnhealthyMeals
+        "Quantidade total de refeições fora da dieta": qtUnhealthyMeals,
+        "Melhor sequência de refeições dentro da dieta": bestSequence
       }
 
       return res.status(200).send({ userId, result })
